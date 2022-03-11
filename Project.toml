@@ -1,0 +1,19 @@
+name = "ProximalSEM"
+uuid = "3652f839-8142-48b2-a17c-985bd14407c5"
+authors = ["Maximilian S. Ernst", "Aaron Peikert"]
+version = "0.1.0"
+
+[deps]
+ProximalAlgorithms = "140ffc9f-1907-541a-a177-7475e0a401e9"
+ProximalCore = "dc4f5ac2-75d1-4f31-931e-60435d74994b"
+ProximalOperators = "a725b495-10eb-56fe-b38b-717eba820537"
+StructuralEquationModels = "383ca8c5-e4ff-4104-b0a9-f7b279deed53"
+
+[compat]
+julia = "1.7.2"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
