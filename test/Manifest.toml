@@ -51,21 +51,21 @@ uuid = "9718e550-a3fa-408a-8086-8db961cd8217"
 version = "0.1.1"
 
 [[deps.BenchmarkTools]]
-deps = ["JSON", "Logging", "Printf", "Profile", "Statistics", "UUIDs"]
-git-tree-sha1 = "4c10eee4af024676200bc7752e536f858c6b8f93"
+deps = ["JSON", "Printf", "Statistics"]
+git-tree-sha1 = "90b73db83791c5f83155016dd1cc1f684d4e1361"
 uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-version = "1.3.1"
+version = "0.4.3"
 
 [[deps.Bijections]]
 git-tree-sha1 = "705e7822597b432ebe152baa844b49f8026df090"
 uuid = "e2ed5e7c-b2de-5872-ae92-c73ca462fb04"
 version = "0.1.3"
 
-[[deps.Bzip2_jll]]
-deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "19a35467a82e236ff51bc17a3a44b69ef35185a2"
-uuid = "6e34b625-4abd-537c-b88f-471c36dfa7a0"
-version = "1.0.8+0"
+[[deps.BinaryProvider]]
+deps = ["Libdl", "Logging", "SHA"]
+git-tree-sha1 = "ecdec412a9abc8db54c0efc5548c64dfce072058"
+uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
+version = "0.5.10"
 
 [[deps.CSV]]
 deps = ["CodecZlib", "Dates", "FilePathsBase", "InlineStrings", "Mmap", "Parsers", "PooledArrays", "SentinelArrays", "Tables", "Unicode", "WeakRefStrings"]
@@ -90,12 +90,6 @@ deps = ["ChainRulesCore", "LinearAlgebra", "Test"]
 git-tree-sha1 = "bf98fa45a0a4cee295de98d4c1462be26345b9a1"
 uuid = "9e997f8a-9a97-42d5-a9f1-ce6bfc15e2c0"
 version = "0.1.2"
-
-[[deps.CodecBzip2]]
-deps = ["Bzip2_jll", "Libdl", "TranscodingStreams"]
-git-tree-sha1 = "2e62a725210ce3c3c2e1a3080190e7ca491f18d7"
-uuid = "523fee87-0ab8-5b00-afb7-3ecf72e48cfd"
-version = "0.7.2"
 
 [[deps.CodecZlib]]
 deps = ["TranscodingStreams", "Zlib_jll"]
@@ -422,10 +416,10 @@ deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[deps.MathOptInterface]]
-deps = ["BenchmarkTools", "CodecBzip2", "CodecZlib", "JSON", "LinearAlgebra", "MutableArithmetics", "OrderedCollections", "Printf", "SparseArrays", "Test", "Unicode"]
-git-tree-sha1 = "a62df301482a41cb7b1db095a4e6949ba7eb3349"
+deps = ["BenchmarkTools", "LinearAlgebra", "OrderedCollections", "SparseArrays", "Test", "Unicode"]
+git-tree-sha1 = "78427dcc212e0c0ad9658049bc56a50303ad9737"
 uuid = "b8f27783-ece8-5eb3-8dc8-9495eed66fee"
-version = "1.1.0"
+version = "0.9.7"
 
 [[deps.MathProgBase]]
 deps = ["LinearAlgebra", "SparseArrays"]
@@ -480,10 +474,10 @@ uuid = "d41bc354-129a-5804-8e4c-c37616107c6c"
 version = "7.8.2"
 
 [[deps.NLopt]]
-deps = ["MathOptInterface", "MathProgBase", "NLopt_jll"]
-git-tree-sha1 = "5a7e32c569200a8a03c3d55d286254b0321cd262"
+deps = ["MathProgBase", "NLopt_jll"]
+git-tree-sha1 = "48d523294d66f34d012e224ec3082d35c395ebd2"
 uuid = "76087f3c-5699-56af-9a33-bf431cd00edd"
-version = "0.6.5"
+version = "0.6.0"
 
 [[deps.NLopt_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -500,10 +494,10 @@ version = "0.3.7"
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 
 [[deps.OSQP]]
-deps = ["Libdl", "LinearAlgebra", "MathOptInterface", "OSQP_jll", "SparseArrays"]
-git-tree-sha1 = "3514d0aff03027a9c1b0b312151619c9feec412a"
+deps = ["BinaryProvider", "Libdl", "LinearAlgebra", "MathOptInterface", "MathProgBase", "OSQP_jll", "SparseArrays"]
+git-tree-sha1 = "1231412a185b8c160111bdfa0c186108e2b5c049"
 uuid = "ab2f91bb-94b4-55e3-9ba0-7f65df51de79"
-version = "0.8.0"
+version = "0.6.1"
 
 [[deps.OSQP_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -586,21 +580,11 @@ version = "1.3.1"
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
-[[deps.Profile]]
-deps = ["Printf"]
-uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
-
-[[deps.ProximalCore]]
-deps = ["LinearAlgebra"]
-git-tree-sha1 = "8b989d98f46f46d345a81fc717054ea04eaaed8e"
-uuid = "dc4f5ac2-75d1-4f31-931e-60435d74994b"
-version = "0.1.1"
-
 [[deps.ProximalOperators]]
-deps = ["IterativeSolvers", "LinearAlgebra", "OSQP", "ProximalCore", "SparseArrays", "SuiteSparse", "TSVD"]
-git-tree-sha1 = "13d5c30ca9bb69fd2996f14bdaad47083d044e72"
+deps = ["IterativeSolvers", "LinearAlgebra", "OSQP", "SparseArrays", "SuiteSparse", "TSVD"]
+git-tree-sha1 = "d32ba50ff3e3192a3d4b9510618b9670d6925009"
 uuid = "a725b495-10eb-56fe-b38b-717eba820537"
-version = "0.15.1"
+version = "0.14.2"
 
 [[deps.QuadGK]]
 deps = ["DataStructures", "LinearAlgebra"]
@@ -756,10 +740,10 @@ uuid = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 version = "0.9.16"
 
 [[deps.StructuralEquationModels]]
-deps = ["FiniteDiff", "ForwardDiff", "LineSearches", "LinearAlgebra", "NLSolversBase", "NLopt", "Optim", "PrettyTables", "ProximalOperators", "Random", "SparseArrays", "Statistics", "StatsBase", "Symbolics"]
-git-tree-sha1 = "1b7cf009118986fd6ccf5f1535bffa7e68aa5d38"
+deps = ["Distributions", "FiniteDiff", "ForwardDiff", "LineSearches", "LinearAlgebra", "NLSolversBase", "NLopt", "Optim", "PrettyTables", "ProximalOperators", "Random", "SparseArrays", "Statistics", "StatsBase", "Symbolics"]
+git-tree-sha1 = "b526a573b383cb7cdd2b4065ed382115b6dfa596"
 repo-rev = "main"
-repo-url = "https://github.com/StructuralEquationModels/StructuralEquationModels.jl/"
+repo-url = "https://github.com/StructuralEquationModels/StructuralEquationModels.jl"
 uuid = "383ca8c5-e4ff-4104-b0a9-f7b279deed53"
 version = "0.1.0"
 
