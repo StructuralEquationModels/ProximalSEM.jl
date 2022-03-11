@@ -6,11 +6,11 @@ DocMeta.setdocmeta!(ProximalSEM, :DocTestSetup, :(using ProximalSEM); recursive=
 makedocs(;
     modules=[ProximalSEM],
     authors="Maximilian S. Ernst, Aaron Peikert",
-    repo="https://github.com/Maximilian-Stefan-Ernst/ProximalSEM.jl/blob/{commit}{path}#{line}",
+    repo="https://github.com/StructuralEquationModels/ProximalSEM.jl/blob/{commit}{path}#{line}",
     sitename="ProximalSEM.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://Maximilian-Stefan-Ernst.github.io/ProximalSEM.jl",
+        canonical="https://StructuralEquationModels.github.io/ProximalSEM.jl",
         assets=String[],
     ),
     pages=[
@@ -19,6 +19,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/Maximilian-Stefan-Ernst/ProximalSEM.jl",
+    repo="github.com/StructuralEquationModels/ProximalSEM.jl",
     devbranch="main",
 )
