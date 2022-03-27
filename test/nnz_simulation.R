@@ -2,7 +2,6 @@ library(tidyverse)
 
 setwd("/home/maximilian/Documents/repositories/ProximalSEM.jl/test/")
 
-
 # read errors -------------------------------------------------------------
 
 error_incorrect_ml <- read_csv("error_incorrect_ml.csv")
@@ -45,16 +44,14 @@ error <- error %>%
     names_to = "alpha", 
     values_to = "error")
 
-alphα_values <- c(seq(0.01, 0.1, 0.01), seq(0.2, 1, 0.1))
-names(alphα_values) <- str_c("x", 1:19)
+alpha_values <- c(seq(0.01, 0.1, 0.01), seq(0.2, 1.5, 0.1))
+names(alpha_values) <- str_c("x", 1:24)
 
-error$alpha <- recode(error$alpha, !!!alphα_values)
-
+error$alpha <- recode(error$alpha, !!!alpha_values)
 
 # read minimum alphas -----------------------------------------------------
 α_l0_best <- read_csv("α_l0_best.csv")
 α_l1_best <- read_csv("α_l1_best.csv")
-
 
 # plot all errors ---------------------------------------------------------
 
@@ -102,6 +99,12 @@ error %>%
   geom_density() +
   facet_wrap(~alpha)
 
+α_l0_best <- 
+  mutate(α_l0_best, alpha_value = alpha_values[α_l0_best$which_alpha])
+
+α_l1_best <- 
+  mutate(α_l1_best, alpha_value = alpha_values[α_l1_best$which_alpha])
+
 α_l0_best %>% 
   ggplot(aes(x = alpha_value)) +
   geom_bar()
@@ -110,13 +113,7 @@ error %>%
   ggplot(aes(x = alpha_value)) +
   geom_bar()
 
-α_l0_best <- 
-  mutate(α_l0_best, alpha_value = alpha_values[α_l0_best$which_alpha])
-
-α_l1_best <- 
-  mutate(α_l1_best, alpha_value = alpha_values[α_l1_best$which_alpha])
-
-error$data_id <- rep(str_c("data", 1:100), 114)
+error$data_id <- rep(str_c("data", 1:100), 3*2*24)
 
 α_l0_best$data_id <- str_c("data", 1:100)
 α_l1_best$data_id <- str_c("data", 1:100)
@@ -145,7 +142,8 @@ error2 %>% filter(type == "correct", error < 1) %>%
 error2 %>% filter(type == "incorrect", error < 1) %>% 
   ggplot(aes(x = error, color = reg)) + geom_density()
 
+
 error2 %>% 
-  filter(type == "correct", reg == "l0", error < 100) %>% 
-  ggplot(aes(x = alpha, y = error)) + 
-    geom_point()
+  pivot_wider(id_cols = c(id),
+              names_from = c(reg, type),
+              values_from = error)
