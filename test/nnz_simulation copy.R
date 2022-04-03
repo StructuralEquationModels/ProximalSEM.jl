@@ -4,94 +4,89 @@ setwd("/home/maximilian/Documents/repositories/ProximalSEM.jl/test/")
 
 # read errors -------------------------------------------------------------
 
-res <- read_csv("res.csv")
-res <- rename(res,
-  a_l0_cv = α_l0_cv,
-  a_l1_cv = α_l1_cv,
-  a_l0_bic = α_l0_bic,
-  a_l1_bic = α_l1_bic
+res_l0 <- read_csv("res_l0.csv")
+res_l1 <- read_csv("res_l1.csv")
+res_ml <- read_csv("res_ml.csv")
+
+res_l0$reg <- "l0"
+res_l1$reg <- "l1"
+res_ml$reg <- "ml"
+
+res <- bind_rows(
+  res_l0,
+  res_l1,
+  res_ml
 )
 
-res %>% 
-  pivot_longer(
-    starts_with("a_"),
-    names_to = "type",
-    values_to = "alpha"
-  ) %>% 
-  ggplot(aes(x = alpha)) +
-  geom_bar() + 
-  facet_wrap(~type)
+res <- rename(res,
+  a = α,
+  which_a = which_α
+)
+
+# convergence -------------------------------------------------------------
 
 res %>% 
-  select(starts_with("converged")) %>% 
-  colSums()
+  group_by(reg) %>% 
+  summarise(converged = sum(converged))
+
+res %>% 
+  group_by(reg) %>% 
+  summarise(converged = sum(is.infinite(bic)))
+
+res %>% 
+  ggplot(aes(x = a)) +
+  facet_wrap(~reg) +
+  geom_histogram(bins = 10)
+
+
+# recover structure -------------------------------------------------------
 
 res <- mutate(res, 
-  l0_recovered_bic = zero_c_bic + nonzero_ic_bic,
-  l0_recovered_cv = zero_c_cv + nonzero_ic_cv,
+  recovered = zero_c + nonzero_ic,
   )
+
+res %>% 
+  filter(reg %in% c("l0", "l1")) %>% 
+  ggplot(aes(x = recovered)) +
+  geom_bar() +
+  facet_wrap(~reg)
 
 # cor: 9
 # in: 2*9
 # -> 27
 
 res %>% 
-  ggplot(aes(x = l0_recovered_bic)) +
-  geom_bar()
+  filter(reg %in% c("l0", "l1")) %>% 
+  ggplot(aes(x = zero_c)) +
+  geom_bar() +
+  facet_wrap(~reg)
 
 res %>% 
-  ggplot(aes(x = zero_c_bic)) +
-  geom_bar()
+  filter(reg %in% c("l0", "l1")) %>% 
+  ggplot(aes(x = nonzero_ic)) +
+  geom_bar() +
+  facet_wrap(~reg)
 
-res %>% 
-  ggplot(aes(x = nonzero_ic_bic)) +
-  geom_bar()
 
-res <- res %>% pivot_longer(
+# error -------------------------------------------------------------------
+
+res <- pivot_longer(
+  res,
   starts_with("error"),
   values_to = "error",
-  names_to = "type"
-)
+  names_to = "type")
 
-get_reg <- function(string){
-  if(str_detect(string, "l0")){
-    return("l0")
-  }else if(str_detect(string, "l1")){
-    return("l1")
-  }else{
-    return("ml")
-  }
-}
-
-res <- res %>% 
-  mutate(
-    pars = ifelse(str_detect(type, "_ic_"), "incorrect", "correct"),
-    reg = map_chr(type, get_reg),
-    criterion = ifelse(str_detect(type, "bic"), "bic", "cv")
-  )
-
-er_cutoff = 1
+res %>% group_by(reg, type) %>% summarise(error_max = max(error))
+cut = 1
 
 res %>% 
-  filter(error < er_cutoff, reg %in% c("l0", "l1")) %>% 
+  filter(error < cut) %>% 
   ggplot(aes(x = error, color = reg)) +
   geom_density() +
-  facet_grid(rows = vars(pars), cols = vars(criterion))
-
-res %>% 
-  group_by(reg, pars, criterion) %>% 
-  summarize(error = max(error[error != Inf]))
-
-res %>% 
-  filter(error < 1, reg %in% c("l0", "l1")) %>% 
-  ggplot(aes(x = error, color = criterion)) +
-  geom_density() +
-  facet_grid(rows = vars(pars), cols = vars(reg)) +
+  facet_grid(cols = vars(type)) +
   theme_minimal()
 
 res %>% 
-  filter(error < er_cutoff, ((criterion == "bic")|(reg == "ml"))) %>% 
-  ggplot(aes(x = error, color = reg)) +
-  geom_density() +
-  facet_grid(rows = vars(pars)) +
-  theme_minimal()
+  group_by(reg, type) %>% 
+  summarise(error_max = quantile(error, 0.75))
+

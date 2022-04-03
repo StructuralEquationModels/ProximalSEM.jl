@@ -394,74 +394,62 @@ CSV.write("α_l1_best.csv", DataFrame(reshape(α_l1_best, 100, 1), [:which_alpha
 α = [0.01:0.01:0.1..., 0.2:0.1:1.5...]
 n_dat = 100
 
-res = zeros(100, 27); res .= -99
+res_ml = DataFrame(ones(100, 2), [:error_ic, :error_c, :converged])
 
-res = DataFrame(
-    res, [
-        :error_ic_ml,
-        :error_c_ml,
+res_l0 = DataFrame(
+    ones(100, 8), [
+        :error_ic,
+        :error_c,
 
-        :error_ic_l0_cv,
-        :error_ic_l1_cv,
-        :error_c_l0_cv,
-        :error_c_l1_cv,
+        :α,
+        :which_α,
+        :bic,
 
-        :error_ic_l0_bic,
-        :error_ic_l1_bic,
-        :error_c_l0_bic,
-        :error_c_l1_bic,
+        :converged,
 
-        :α_l0_cv,
-        :α_l1_cv,
-        :α_l0_bic,
-        :α_l1_bic,
-
-        :logl_l0,
-        :logl_l1,
-        :bic_l0,
-        :bic_l1,
-
-        :converged_l0_cv,
-        :converged_l1_cv,
-        :converged_l0_bic,
-        :converged_l1_bic,
-
-        :converged_ml,
-
-        :nonzero_ic_cv,
-        :zero_c_cv,
-        :nonzero_ic_bic,
-        :zero_c_bic,
+        :nonzero_ic,
+        :zero_c
         ])
 
-res_inner = zeros(24, 20); res_inner .= -99
+res_l1 = DataFrame(
+    ones(100, 8), [
+        :error_ic,
+        :error_c,
 
-res_inner = DataFrame(
-    res_inner, [
-        :error_ic_l0_bic,
-        :error_ic_l1_bic,
-        :error_c_l0_bic,
-        :error_c_l1_bic,
+        :α,
+        :which_α,
+        :bic,
 
-        :error_ic_l0_cv,
-        :error_ic_l1_cv,
-        :error_c_l0_cv,
-        :error_c_l1_cv,
+        :converged,
 
-        :logl_l0,
-        :logl_l1,
-        :bic_l0,
-        :bic_l1,
+        :nonzero_ic,
+        :zero_c
+        ])
 
-        :converged_l0_cv,
-        :converged_l1_cv,
-        :converged_l0_bic,
-        :converged_l1_bic,
+res_inner_l0 = DataFrame(
+    ones(length(α), 6), [
+        :error_ic,
+        :error_c,
 
-        :nonzero_ic_cv,
-        :zero_c_cv,
-        :nonzero_ic_bic,
-        :zero_c_bic,
+        :bic,
+
+        :converged,
+
+        :nonzero_ic,
+        :zero_c
+        ])
+
+res_inner_l1 = DataFrame(
+    ones(length(α), 6), [
+        :error_ic,
+        :error_c,
+
+        :bic,
+
+        :converged,
+
+        :nonzero_ic,
+        :zero_c
         ])
 
 n_obs = 50
@@ -474,9 +462,6 @@ for i in 1:n_dat
     # simulate data
     obs_data = permutedims(rand(dist, n_obs))
     obs_data = DataFrame(obs_data, colnames)
-
-    holdout = obs_data[1:25, :]
-    obs_data_cv = obs_data[26:50, :]
 
     # fit ml model
     model_ml = Sem(
@@ -494,33 +479,23 @@ for i in 1:n_dat
         all(abs.(solution_ml.solution) .< 100) & 
         Optim.converged(solution_ml.optimization_result))
 
-    res.converged_ml[i] = converged
+    res_ml.converged[i] = converged
 
     if !converged
-        res.error_ic_ml[i] = Inf
-        res.error_c_ml[i] = Inf
+        res_ml.error_ic[i] = Inf
+        res_ml.error_c[i] = Inf
     else
-        res.error_ic_ml[i] = mean(abs.(solution_ml.solution[ind_incorrect] .- 0.0))
-        res.error_c_ml[i] = mean(abs.(solution_ml.solution[ind_correct] .- 0.7))
+        res_ml.error_ic[i] = mean(abs.(solution_ml.solution[ind_incorrect] .- 0.0))
+        res_ml.error_c[i] = mean(abs.(solution_ml.solution[ind_correct] .- 0.7))
     end
 
     for (j, α₁) in enumerate(α)
 
-        # l1 regularization
+        # l1 regularization ------------------------------------------------------------
         λ = zeros(51)
         λ[ind] .= α₁
 
-        model_l1_cv = Sem(
-            specification = ram_mat,
-            data = obs_data_cv,
-            loss = SemML,
-            diff = SemDiffProximal,
-            operator_g = NormL1(λ)
-        )
-
-        solution_l1_cv = sem_fit(model_l1_cv)
-
-        model_l1_bic = Sem(
+        model_l1 = Sem(
             specification = ram_mat,
             data = obs_data,
             loss = SemML,
@@ -528,58 +503,18 @@ for i in 1:n_dat
             operator_g = NormL1(λ)
         )
 
-        solution_l1_bic = sem_fit(model_l1_bic)
-
-        objective!(model_l1_cv, solution_l1_cv.solution)
-        Σ_l1 = model_l1_cv.imply.Σ
-        res_inner.converged_l1_cv[j]  = (
-            isposdef(Symmetric(Σ_l1)) & 
-            all(abs.(solution_l1_cv.solution) .< 100) & 
-            (solution_l1_cv.optimization_result[:iterations] < 1000))
-
-        if !Bool(res_inner.converged_l1_cv[j] )
-            res_inner.error_ic_l1_cv[j] = Inf
-            res_inner.error_c_l1_cv[j] = Inf
-            res_inner.logl_l1[j] = -Inf
-        else
-            res_inner.error_ic_l1_cv[j] = mean(abs.(solution_l1_cv.solution[ind_incorrect] .- 0.0))
-            res_inner.error_c_l1_cv[j] = mean(abs.(solution_l1_cv.solution[ind_correct] .- 0.7))
-            res_inner.logl_l1[j] = logdet(Σ_l1) + tr(inv(Σ_l1)*cov(Matrix(holdout)))
-        end
+        solution_l1 = sem_fit(model_l1)
         
-        objective!(model_l1_bic, solution_l1_bic.solution)
-        Σ_l1 = model_l1_bic.imply.Σ
-        res_inner.converged_l1_bic[j]  = (
-            isposdef(Symmetric(Σ_l1)) & 
-            all(abs.(solution_l1_bic.solution) .< 100) & 
-            solution_l1_bic.optimization_result[:iterations] < 1000)
+        objective!(model_l1, solution_l1.solution)
+        Σ_l1 = model_l1.imply.Σ
+        
+        res_inner_l1.converged[j] = my_converged(Σ_l1, solution_l1)
+        update_res_inner!(res_inner_l1, j, solution_l1, ind_incorrect, ind_correct, 1e-3)
 
-        if !Bool(res_inner.converged_l1_bic[j] )
-            res_inner.error_ic_l1_bic[j] = Inf
-            res_inner.error_c_l1_bic[j] = Inf
-            res_inner.bic_l1[j] = Inf
-        else
-            res_inner.error_ic_l1_bic[j] = mean(abs.(solution_l1_bic.solution[ind_incorrect] .- 0.0))
-            res_inner.error_c_l1_bic[j] = mean(abs.(solution_l1_bic.solution[ind_correct] .- 0.7))
-            res_inner.bic_l1[j] = 
-            minus2ll(solution_l1_bic) + log(SEM.n_obs(solution_l1_bic))*sum(solution_l1_bic.solution .> 1e-3)
-        end
-
-        # l0 regularization
-
+        # l0 regularization ---------------------------------------------------------
         sepsum = SlicedSeparableSum(Tuple(NormL0(λᵢ) for λᵢ in λ), Tuple(1:51))
 
-        model_l0_cv = Sem(
-            specification = ram_mat,
-            data = obs_data_cv,
-            loss = SemML,
-            diff = SemDiffProximal,
-            operator_g = sepsum
-        )
-
-        solution_l0_cv = sem_fit(model_l0_cv)
-
-        model_l0_bic = Sem(
+        model_l0 = Sem(
             specification = ram_mat,
             data = obs_data,
             loss = SemML,
@@ -587,84 +522,65 @@ for i in 1:n_dat
             operator_g = sepsum
         )
 
-        solution_l0_bic = sem_fit(model_l0_bic)
-
-        objective!(model_l0_cv, solution_l0_cv.solution)
-        Σ_l0 = model_l0_cv.imply.Σ
-        res_inner.converged_l0_cv[j]  = (
-            isposdef(Symmetric(Σ_l0)) & 
-            all(abs.(solution_l0_cv.solution) .< 100) & 
-            (solution_l0_cv.optimization_result[:iterations] < 1000))
-
-        if !Bool(res_inner.converged_l0_cv[j])
-            res_inner.error_ic_l0_cv[j] = Inf
-            res_inner.error_c_l0_cv[j] = Inf
-            res_inner.logl_l0[j] = -Inf
-            res_inner.nonzero_ic_cv[j] = Inf
-            res_inner.zero_c_cv[j] = Inf
-        else
-            res_inner.error_ic_l0_cv[j] = mean(abs.(solution_l0_cv.solution[ind_incorrect] .- 0.0))
-            res_inner.error_c_l0_cv[j] = mean(abs.(solution_l0_cv.solution[ind_correct] .- 0.7))
-            res_inner.logl_l0[j] = logdet(Σ_l0) + tr(inv(Σ_l0)*cov(Matrix(holdout)))
-            res_inner.nonzero_ic_cv[j] = sum(.!iszero.(solution_l0_cv.solution[ind_incorrect]))
-            res_inner.zero_c_cv[j] = sum(iszero.(solution_l0_cv.solution[ind_correct]))
-        end
+        solution_l0 = sem_fit(model_l0)
         
-        objective!(model_l0_bic, solution_l0_bic.solution)
-        Σ_l0 = model_l0_bic.imply.Σ
-        res_inner.converged_l0_bic[j]  = (
-            isposdef(Symmetric(Σ_l0)) & 
-            all(abs.(solution_l0_bic.solution) .< 100) & 
-            solution_l0_bic.optimization_result[:iterations] < 1000)
+        objective!(model_l0, solution_l0.solution)
+        Σ_l0 = model_l0.imply.Σ
 
-        if !Bool(res_inner.converged_l0_bic[j]) 
-            res_inner.error_ic_l0_bic[j] = Inf
-            res_inner.error_c_l0_bic[j] = Inf
-            res_inner.bic_l0[j] = Inf
-            res_inner.nonzero_ic_bic[j] = Inf
-            res_inner.zero_c_bic[j] = Inf
-        else
-            res_inner.error_ic_l0_bic[j] = mean(abs.(solution_l0_bic.solution[ind_incorrect] .- 0.0))
-            res_inner.error_c_l0_bic[j] = mean(abs.(solution_l0_bic.solution[ind_correct] .- 0.7))
-            res_inner.bic_l0[j] = 
-                minus2ll(solution_l0_bic) + log(SEM.n_obs(solution_l0_bic))*sum(.!iszero.(solution_l0_bic.solution))
-            res_inner.nonzero_ic_bic[j] = sum(.!iszero.(solution_l0_bic.solution[ind_incorrect]))
-            res_inner.zero_c_bic[j] = sum(iszero.(solution_l0_bic.solution[ind_correct]))
-        end
+        res_inner.converged_l0[j]  = my_converged(Σ_l0, solution_l0)
+        update_res_inner!(res_inner_l0, j, solution_l0, ind_incorrect, ind_correct, 0.0)
 
     end
 
     # update best alpha values
-    res.α_l0_cv[i] = findmax(res_inner.logl_l0)[2]
-    res.α_l0_bic[i] = findmin(res_inner.bic_l0)[2]
-    res.α_l1_cv[i] = findmax(res_inner.logl_l1)[2]
-    res.α_l1_bic[i] = findmin(res_inner.bic_l1)[2]
-
-    res.logl_l0[i] = res_inner.logl_l0[Int(res.α_l0_cv[i])]
-    res.bic_l0[i] = res_inner.bic_l0[Int(res.α_l0_bic[i])]
-    res.logl_l1[i] = res_inner.logl_l1[Int(res.α_l1_cv[i])]
-    res.bic_l1[i] = res_inner.bic_l1[Int(res.α_l1_bic[i])]
-
-    res.converged_l0_cv[i] = res_inner.converged_l0_cv[Int(res.α_l0_cv[i])]
-    res.converged_l0_bic[i] = res_inner.converged_l0_bic[Int(res.α_l0_bic[i])]
-    res.converged_l1_cv[i] = res_inner.converged_l1_cv[Int(res.α_l1_cv[i])]
-    res.converged_l1_bic[i] = res_inner.converged_l1_bic[Int(res.α_l1_bic[i])]
-
-    res.error_ic_l0_cv[i] = res_inner.error_ic_l0_cv[Int(res.α_l0_cv[i])]
-    res.error_ic_l0_bic[i] = res_inner.error_ic_l0_bic[Int(res.α_l0_bic[i])]
-    res.error_ic_l1_cv[i] = res_inner.error_ic_l1_cv[Int(res.α_l1_cv[i])]
-    res.error_ic_l1_bic[i] = res_inner.error_ic_l1_bic[Int(res.α_l1_bic[i])]
-
-    res.error_c_l0_cv[i] = res_inner.error_c_l0_cv[Int(res.α_l0_cv[i])]
-    res.error_c_l0_bic[i] = res_inner.error_c_l0_bic[Int(res.α_l0_bic[i])]
-    res.error_c_l1_cv[i] = res_inner.error_c_l1_cv[Int(res.α_l1_cv[i])]
-    res.error_c_l1_bic[i] = res_inner.error_c_l1_bic[Int(res.α_l1_bic[i])]
-
-    res.nonzero_ic_cv[i] = res_inner.nonzero_ic_cv[Int(res.α_l0_cv[i])]
-    res.zero_c_cv[i] = res_inner.zero_c_cv[Int(res.α_l0_cv[i])]
-    res.nonzero_ic_bic[i] = res_inner.nonzero_ic_bic[Int(res.α_l0_bic[i])]
-    res.zero_c_bic[i] = res_inner.zero_c_bic[Int(res.α_l0_bic[i])]
+    update_res!(res_l0, res_inner_l0, i)
+    update_res!(res_l1, res_inner_l1, i)
 end
 
 # save as CSV
 CSV.write("res.csv", res)
+
+function update_res!(res, res_inner, i)
+    k = Int(findmin(res_inner.bic)[2])
+
+    res.which_α[i] = k
+    res.α[i] = α[k]
+    res.bic[i] = res_inner.bic[k]
+
+    res.converged[i] = res_inner.converged[k]
+    # errors
+    res.error_ic[i] = res_inner.error_ic[k]
+    res.error_c[i] = res_inner.error_c[k]
+    # structural errors
+    res.nonzero_ic[i] = res_inner.nonzero_ic[k]
+    res.zero_c[i] = res_inner.zero_c[k]
+end
+
+function update_res_inner!(res_inner, j, solution, ind_incorrect, ind_correct, atol_zero)
+    if !Bool(res_inner_l1.converged[j])
+        res_inner.error_ic[j] = Inf
+        res_inner.error_c[j] = Inf
+        res_inner.bic[j] = Inf
+        res_inner.nonzero_ic[j] = Inf
+        res_inner.zero_c[j] = Inf
+    else
+        res_inner.error_ic[j] = mean(abs.(solution.solution[ind_incorrect] .- 0.0))
+        res_inner.error_c[j] = mean(abs.(solution.solution[ind_correct] .- 0.7))
+        res_inner.bic[j] = my_bic(solution, atol_zeros)
+        res_inner.nonzero_ic[j] = sum(.!iszero.(solution.solution[ind_incorrect]))
+        res_inner.zero_c[j] = sum(isapprox.(solution.solution[ind_correct], 0; atol = atol_zero))
+    end
+end
+
+function my_bic(solution, atol)
+    minus2ll(solution) + log(SEM.n_obs(solution))*sum(.!isapprox.(solution.solution, 0; atol = atol))
+end
+
+function my_converged(Σ, solution)
+    is_converged = 
+        (isposdef(Symmetric(Σ)) & 
+        all(abs.(solution.solution) .< 100) & 
+        solution.optimization_result[:iterations] < 1000)
+    return is_converged
+end
+

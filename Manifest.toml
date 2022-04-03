@@ -755,7 +755,7 @@ version = "0.1.1"
 
 [[StructuralEquationModels]]
 deps = ["Distributions", "FiniteDiff", "ForwardDiff", "LineSearches", "LinearAlgebra", "NLSolversBase", "NLopt", "Optim", "PrettyTables", "ProximalOperators", "Random", "SparseArrays", "Statistics", "StatsBase", "StenoGraphs", "Symbolics"]
-git-tree-sha1 = "c155418cf55fff529d98e520e6026075fd47fd87"
+git-tree-sha1 = "a8ff4ac0472a230225b57ad48205c67b64ab07c0"
 repo-rev = "main"
 repo-url = "https://github.com/StructuralEquationModels/StructuralEquationModels.jl"
 uuid = "383ca8c5-e4ff-4104-b0a9-f7b279deed53"
