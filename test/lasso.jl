@@ -1,7 +1,7 @@
-using StructuralEquationModels, ProximalSEM, ProximalOperators, CSV, DataFrames, StenoGraphs
+using StructuralEquationModels, ProximalSEM, ProximalOperators, Test
 
 # load data
-dat = DataFrame(CSV.File("data_dem.csv"))
+dat = example_data("political_democracy")
 
 ############################################################################
 ### define models
@@ -33,25 +33,52 @@ end
 
 partable = ParameterTable(;
     graph = graph, 
-    latent_vars = latent_vars, 
+    latent_vars = latent_vars,
     observed_vars = observed_vars)
 
 ram_mat = RAMMatrices(partable)
 
+model = Sem(
+    specification = partable,
+    data = dat,
+    loss = SemML
+)
+
+fit = sem_fit(model)
+
 # use lasso from ProximalSEM
 ind = get_identifier_indices([:cov_15, :cov_24, :cov_26, :cov_37, :cov_48, :cov_68], ram_mat)
-λ = zeros(31); λ[16:20] .= 0.002
+λ = zeros(31)
+
+model_prox = Sem(
+    specification = partable,
+    data = dat,
+    loss = SemML,
+    optimizer = SemOptimizerProximal,
+    operator_g = NormL1(λ)
+)
+
+fit_prox = sem_fit(model_prox)
+
+@testset "lasso | solution_unregularized" begin
+    @test fit_prox.optimization_result[:iterations] < 1000
+    @test maximum(abs.(solution(fit) - solution(fit_prox))) < 1e-3
+end
+
+λ = zeros(31); λ[16:20] .= 0.02
 
 model_prox = Sem(
     specification = partable,
     data = dat,
     loss = (SemML,),
-    diff = SemDiffProximal,
+    optimizer = SemOptimizerProximal,
     operator_g = NormL1(λ)
 )
 
-solution_prox = sem_fit(model_prox)
+fit_prox = sem_fit(model_prox)
 
-@testset "lasso_converged" begin
-    @test solution_prox.solution.optimization_result[:iterations] < 1000
+@testset "lasso | solution_regularized" begin
+    @test fit_prox.optimization_result[:iterations] < 1000
+    @test all(solution(fit_prox)[16:20] .< solution(fit)[16:20])
+    @test StructuralEquationModels.minimum(fit_prox) - StructuralEquationModels.minimum(fit) < 0.03
 end

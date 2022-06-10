@@ -5,11 +5,11 @@ module ProximalSEM
     import ProximalCore, ProximalAlgorithms, ProximalOperators
     import ProximalCore: prox!
 
-    ProximalCore.prox!(y, f, x, gamma) = ProximalOperators.prox!(y, f, x, gamma)
+    #ProximalCore.prox!(y, f, x, gamma) = ProximalOperators.prox!(y, f, x, gamma)
 
     include("diff/Proximal.jl")
     include("optimizer/ProximalAlgorithms.jl")
 
-    export SemDiffProximal, sem_fit
+    export SemOptimizerProximal, sem_fit
 
 end

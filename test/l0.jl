@@ -46,30 +46,41 @@ model = Sem(
 
 fit = sem_fit(model)
 
-# use ridge from StructuralEquationModels
-model_ridge = Sem(
-    specification = partable,
-    data = dat,
-    loss = (SemML, SemRidge),
-    α_ridge = .02,
-    which_ridge = 16:20
-)
-
-solution_ridge = sem_fit(model_ridge)
-
-# use ridge from ProximalSEM; SqrNormL2 uses λ/2 as penalty
-λ = zeros(31); λ[16:20] .= .04
+# use l0 from ProximalSEM
+# regularized
+prox_operator = SlicedSeparableSum((NormL0(0.0), NormL0(0.02)), ([vcat(1:15, 21:31)], [12:20]))
 
 model_prox = Sem(
     specification = partable,
     data = dat,
     loss = SemML,
     optimizer = SemOptimizerProximal,
-    operator_g = SqrNormL2(λ)
+    operator_g = prox_operator
 )
 
-solution_prox = sem_fit(model_prox)
+fit_prox = sem_fit(model_prox)
 
-@testset "ridge_solution" begin
-    @test isapprox(solution_prox.solution, solution_ridge.solution; rtol = 1e-4)
+@testset "lasso | solution_unregularized" begin
+    @test fit_prox.optimization_result[:iterations] < 1000
+    @test maximum(abs.(solution(fit) - solution(fit_prox))) < 1e-3
+end
+
+# regularized
+prox_operator = SlicedSeparableSum((NormL0(0.0), NormL0(10.0)), ([vcat(1:11, 13:31)], [12]))
+
+model_prox = Sem(
+    specification = partable,
+    data = dat,
+    loss = (SemML,),
+    optimizer = SemOptimizerProximal,
+    operator_g = prox_operator
+)
+
+fit_prox = sem_fit(model_prox)
+maximum(abs.(solution(fit_prox) - solution(fit)))
+
+@testset "l0 | solution_regularized" begin
+    @test fit_prox.optimization_result[:iterations] < 1000
+    @test solution(fit_prox)[12] == 0.0
+    @test abs(StructuralEquationModels.minimum(fit_prox) - StructuralEquationModels.minimum(fit)) < 1.0
 end
