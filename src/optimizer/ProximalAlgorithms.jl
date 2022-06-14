@@ -1,6 +1,10 @@
 ## connect do ProximalAlgorithms.jl as backend
 ProximalCore.gradient!(grad, model::AbstractSem, parameters) = objective_gradient!(grad, model::AbstractSem, parameters)
 
+mutable struct ProximalResult
+    result
+end
+
 function sem_fit(
     model::AbstractSemSingle{O, I, L, D}; 
     start_val = start_val, 
@@ -25,6 +29,36 @@ function sem_fit(
         )
     end
 
-    return SemFit(objective!(model, solution), solution, start_val, model, Dict(:iterations => iterations))
+    minimum = objective!(model, solution)
 
+    optimization_result = Dict(
+        :minimum => minimum,
+        :iterations => iterations,
+        :algorithm => model.optimizer.algorithm,
+        :operator_g => model.optimizer.operator_g)
+
+    isnothing(model.optimizer.operator_h) || 
+        push!(optimization_result, :operator_h => model.optimizer.operator_h)  
+
+    return SemFit(
+        minimum, 
+        solution, 
+        start_val, 
+        model, 
+        ProximalResult(optimization_result)
+        )
+
+end
+
+############################################################################################
+# pretty printing
+############################################################################################
+
+function Base.show(io::IO, result::ProximalResult)
+    print(io, "Minimum:          $(round(result.result[:minimum]; digits = 2)) \n")
+    print(io, "No. evaluations:  $(result.result[:iterations]) \n")
+    print(io, "Operator:         $(nameof(typeof(result.result[:operator_g]))) \n")
+    if haskey(result.result, :operator_h)
+        print(io, "Second Operator:  $(nameof(typeof(result.result[:operator_h]))) \n")
+    end
 end
