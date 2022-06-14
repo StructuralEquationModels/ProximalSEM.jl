@@ -60,9 +60,9 @@ model_prox = Sem(
 
 fit_prox = sem_fit(model_prox)
 
-@testset "lasso | solution_unregularized" begin
+@testset "l0 | solution_unregularized" begin
     @test fit_prox.optimization_result[:iterations] < 1000
-    @test maximum(abs.(solution(fit) - solution(fit_prox))) < 1e-3
+    @test maximum(abs.(solution(fit) - solution(fit_prox))) < 0.002
 end
 
 # regularized
