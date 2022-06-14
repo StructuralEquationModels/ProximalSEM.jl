@@ -838,7 +838,6 @@ git-tree-sha1 = "06fca3d44e77bd5db6bc0faf0273d2bb73543611"
 repo-rev = "main"
 repo-url = "https://github.com/StructuralEquationModels/StructuralEquationModels.jl"
 uuid = "383ca8c5-e4ff-4104-b0a9-f7b279deed53"
-version = "0.1.0"
 
 [[deps.SuiteSparse]]
 deps = ["Libdl", "LinearAlgebra", "Serialization", "SparseArrays"]
