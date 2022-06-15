@@ -4,3 +4,5 @@
 /docs/build/
 /test/*.csv
 /test/.Rhistory
+
+**/Manifest.toml
