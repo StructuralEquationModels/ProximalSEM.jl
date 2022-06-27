@@ -61,7 +61,7 @@ model_prox = Sem(
 fit_prox = sem_fit(model_prox)
 
 @testset "lasso | solution_unregularized" begin
-    @test fit_prox.optimization_result[:iterations] < 1000
+    @test fit_prox.optimization_result.result[:iterations] < 1000
     @test maximum(abs.(solution(fit) - solution(fit_prox))) < 0.002
 end
 
@@ -78,7 +78,7 @@ model_prox = Sem(
 fit_prox = sem_fit(model_prox)
 
 @testset "lasso | solution_regularized" begin
-    @test fit_prox.optimization_result[:iterations] < 1000
+    @test fit_prox.optimization_result.result[:iterations] < 1000
     @test all(solution(fit_prox)[16:20] .< solution(fit)[16:20])
     @test StructuralEquationModels.minimum(fit_prox) - StructuralEquationModels.minimum(fit) < 0.03
 end

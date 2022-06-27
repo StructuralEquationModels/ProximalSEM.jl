@@ -61,7 +61,7 @@ model_prox = Sem(
 fit_prox = sem_fit(model_prox)
 
 @testset "l0 | solution_unregularized" begin
-    @test fit_prox.optimization_result[:iterations] < 1000
+    @test fit_prox.optimization_result.result[:iterations] < 1000
     @test maximum(abs.(solution(fit) - solution(fit_prox))) < 0.002
 end
 
@@ -80,7 +80,7 @@ fit_prox = sem_fit(model_prox)
 maximum(abs.(solution(fit_prox) - solution(fit)))
 
 @testset "l0 | solution_regularized" begin
-    @test fit_prox.optimization_result[:iterations] < 1000
+    @test fit_prox.optimization_result.result[:iterations] < 1000
     @test solution(fit_prox)[12] == 0.0
     @test abs(StructuralEquationModels.minimum(fit_prox) - StructuralEquationModels.minimum(fit)) < 1.0
 end
