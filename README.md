@@ -8,7 +8,7 @@ This is a package for regularized structural equation modeling. It connects [Str
 
 i.e. everything [ProximalOperators.jl](https://github.com/JuliaFirstOrder/ProximalOperators.jl) implements.
 
-The documentation is part of the documentation of StructuralEquationModels.jl and can be found [here](https://structuralequationmodels.github.io/StructuralEquationModels.jl/stable/tutorials/regularization/regularization/).
+The documentation is part of the documentation of StructuralEquationModels.jl, the relevant chapter can be found [here](https://structuralequationmodels.github.io/StructuralEquationModels.jl/stable/tutorials/regularization/regularization/).
 
 | **Documentation**                                                               | **Build Status**                                                                                | Citation                                                                                        |
 |:-------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
