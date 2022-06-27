@@ -10,7 +10,11 @@ ProximalOperators = "a725b495-10eb-56fe-b38b-717eba820537"
 StructuralEquationModels = "383ca8c5-e4ff-4104-b0a9-f7b279deed53"
 
 [compat]
-julia = "1.7.2"
+julia = "1.7"
+ProximalAlgorithms = "0.5"
+ProximalCore = "0.1"
+ProximalOperators = "0.15"
+StructuralEquationModels = "0.1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
