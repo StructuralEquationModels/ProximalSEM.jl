@@ -1,4 +1,4 @@
-struct SemOptimizerProximal{A, B, C, D} <: SemOptimizer
+mutable struct SemOptimizerProximal{A, B, C, D} <: SemOptimizer
     algorithm::A
     options::B
     operator_g::C
