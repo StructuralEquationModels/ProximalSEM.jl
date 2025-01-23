@@ -1,3 +1,7 @@
+> [!CAUTION]
+> This package is deprecated and all functionality has been moved to the main package `StructuralEquationModels.jl`.
+> All information on how to now fit regularized SEM with `StructuralEquationModels.jl` can be found in the [online docs](https://structuralequationmodels.github.io/StructuralEquationModels.jl/).
+
 # ProximalSEM.jl
 
 This is a package for regularized structural equation modeling. It connects [StructuralEquationModels.jl](https://github.com/StructuralEquationModels/StructuralEquationModels.jl) to [ProximalAlgorithms.jl](https://github.com/JuliaFirstOrder/ProximalAlgorithms.jl). As a result, it can be used to fit structural equation models with
